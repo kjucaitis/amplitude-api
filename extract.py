@@ -1,5 +1,5 @@
 # Import packages
-from datetime import datetime
+from datetime import datetime, timedelta
 import gzip
 import io
 import logging
@@ -16,9 +16,17 @@ load_dotenv()
 api_key = os.getenv("AMP_API_KEY")
 secret_key = os.getenv("AMP_SECRET_KEY")
 
+# Calculate yesterday's date
+yesterday = datetime.now() - timedelta(days=1)
+yesterday_str = yesterday.strftime("%Y%m%d")
+
+# Define dynamic start (12 PM / Noon) and end (12 AM / Midnight)
+start_date = f"{yesterday_str}T12"
+end_date = f"{yesterday_str}T23"
+
 # API endpoint is the EU residency server
 url = "https://analytics.eu.amplitude.com/api/2/export"
-params = {"start": "20260202T12", "end": "20260202T23"}
+params = {"start": start_date, "end": end_date}
 
 # Make the GET request with basic authentication
 response = requests.get(url, params=params, auth=(api_key, secret_key))
@@ -92,6 +100,3 @@ elif status == 504:
 
 else:
     print(f"Error. Status code {status}. Fixing required.")
-
-
-
