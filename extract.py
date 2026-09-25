@@ -20,83 +20,91 @@ secret_key = os.getenv("AMP_SECRET_KEY")
 yesterday = datetime.now() - timedelta(days=1)
 yesterday_str = yesterday.strftime("%Y%m%d")
 
-# Define dynamic start (12 PM / Noon) and end (12 AM / Midnight)
+# Define dynamic start and end dates - from 12PM yesterday to 12AM
 start_date = f"{yesterday_str}T12"
 end_date = f"{yesterday_str}T23"
 
-# API endpoint is the EU residency server
+# API endpoint
 url = "https://analytics.eu.amplitude.com/api/2/export"
 params = {"start": start_date, "end": end_date}
 
-# Make the GET request with basic authentication
-response = requests.get(url, params=params, auth=(api_key, secret_key))
+# Create log directory and set up file logging
+log_dir = "log"
+os.makedirs(log_dir, exist_ok=True)
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+log_filename = f"{log_dir}/amplitude_{timestamp}.log"
 
-# Store status code
-status = response.status_code
+logging.basicConfig(
+    filename=log_filename,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
 
-# Check status FIRST before attempting to process the file
-if status == 200:
+logger = logging.getLogger()
+logger.info("Logger successfully initialised")
 
-    # Create base data directory
-    data_dir = "data"
-    os.makedirs(data_dir, exist_ok=True)
+# Retry parameters
+max_retry = 5
+attempt = 0
+delay = 10
 
-    # Create a unique output folder for this batch using a timestamp
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    extract_folder = os.path.join(data_dir, f"amplitude_{timestamp}")
-    os.makedirs(extract_folder, exist_ok=True)
+while attempt < max_retry:
+    response = requests.get(url, params=params, auth=(api_key, secret_key))
+    status = response.status_code
 
-# # Read zip file data and extract the files
-# with zipfile.ZipFile(io.BytesIO(response.content)) as zip_file:
-#     zip_file.extractall(extract_folder)
+    if status == 200:
+        data_dir = "data"
+        os.makedirs(data_dir, exist_ok=True)
+        extract_folder = os.path.join(data_dir, f"amplitude_{timestamp}")
+        os.makedirs(extract_folder, exist_ok=True)
 
-# # Print response if positive
-# print(f'Status code {status}. Success! Data extracted to: {extract_folder}')
+        try:
+            with zipfile.ZipFile(io.BytesIO(response.content)) as zip_file:
+                for file_info in zip_file.infolist():
+                    if file_info.is_dir():
+                        continue
 
-    # Read binary zip data directly from response and decompress .json.gz files
-    with zipfile.ZipFile(io.BytesIO(response.content)) as zip_file:
-        for file_info in zip_file.infolist():
-            if file_info.is_dir():
-                continue
+                    gz_bytes = zip_file.read(file_info.filename)
+                    json_bytes = gzip.decompress(gz_bytes)
 
-            # 1. Read gzipped bytes directly from zip file
-            gz_bytes = zip_file.read(file_info.filename)
+                    clean_filename = (
+                        file_info.filename[:-3]
+                        if file_info.filename.endswith(".gz")
+                        else file_info.filename
+                    )
+                    output_path = os.path.join(
+                        extract_folder, os.path.basename(clean_filename)
+                    )
 
-            # 2. Decompress gzip stream into uncompressed JSON bytes
-            json_bytes = gzip.decompress(gz_bytes)
+                    with open(output_path, "wb") as f:
+                        f.write(json_bytes)
 
-            # 3. Strip .gz from filename (e.g. 12345_2026-02-02_12#0.json.gz -> 12345_2026-02-02_12#0.json)
-            clean_filename = (
-                file_info.filename[:-3]
-                if file_info.filename.endswith(".gz")
-                else file_info.filename
+            logger.info(
+                f"Status code {status}. Data extracted and decompressed to: {extract_folder}"
             )
-            output_filename = os.path.basename(clean_filename)
-            output_path = os.path.join(extract_folder, output_filename)
 
-            # 4. Save plain JSON file to disk
-            with open(output_path, "wb") as f:
-                f.write(json_bytes)
+        except Exception as e:
+            logger.error(f"An error has occurred: {e}")
 
-    print(
-        f"Status code {status}. Success! Data extracted and decompressed to: {extract_folder}"
-    )
+        break
 
-# Print error comments
-elif status == 400:
-    print(
-        f"Status code {status}. The file size of the exported data is too large. Shorten the time ranges and try again. The limit size is 4GB."
-    )
+    elif status == 400:
+        logger.error(f"Status code {status}. File size too large (limit 4GB).")
+        break
 
-elif status == 404:
-    print(
-        f"Status code {status}. No data available for the time range requested."
-    )
+    elif status == 404:
+        logger.warning(
+            f"Status code {status}. No data available for requested time range."
+        )
+        break
 
-elif status == 504:
-    print(
-        f"Status code {status}. The amount of data is large causing a timeout. For large amounts of data, use the Amazon S3 destination."
-    )
+    elif status < 200 or status >= 500:
+        time.sleep(delay)
+        attempt += 1
+        logger.info(
+            f"Status code: {status}. Retrying. Attempt number {attempt}"
+        )
 
-else:
-    print(f"Error. Status code {status}. Fixing required.")
+    else:
+        logger.critical(f"Error. Status code {status}. Fixing required")
+        break
