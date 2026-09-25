@@ -30,7 +30,7 @@ MANIFEST
 *.env
 .venv
 *\data*
-*\Screenshots*
+Screenshots*
 
 # PyInstaller
 #   Usually these files are written by a python script from a template
