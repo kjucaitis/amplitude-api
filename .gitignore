@@ -27,6 +27,10 @@ share/python-wheels/
 MANIFEST
 
 # Other
+.env
+venv/
+data/
+log/
 *.env
 .venv
 *\data*
