@@ -46,4 +46,4 @@ logger.info("Starting Amplitude extract")
 
 # Running functions
 extract_json(url,params,api_key,secret_key,data_dir,timestamp,max_retry,delay)
-load_files_to_s3(data_dir,AWS_ACCESS_KEY,AWS_SECRET_ACCESS_KEY,AWS_BUCKET_NAME)
+load_files_to_s3('data',AWS_ACCESS_KEY,AWS_SECRET_ACCESS_KEY,AWS_BUCKET_NAME)
