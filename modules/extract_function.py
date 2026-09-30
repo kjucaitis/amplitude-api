@@ -36,6 +36,7 @@ def extract_json(url:str, params:str, api_key:str, secret_key:str, data_dir:str,
         # --- Success: got the data ---
         if status == 200:
             # Make a subfolder for this run, named using the timestamp, e.g. data/amplitude_<timestamp>
+            os.makedirs(data_dir, exist_ok=True)
             extract_folder = os.path.join(data_dir, f"amplitude_{timestamp}")
             os.makedirs(extract_folder, exist_ok=True)
 
