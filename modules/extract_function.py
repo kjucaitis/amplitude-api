@@ -11,7 +11,7 @@ import zipfile  # opens the ZIP that the API returns
 logger = logging.getLogger()
 
 # Defining the function
-def extract_json(url:str, params:str, api_key:str, secret_key:str, timestamp:str, max_retry:int, delay:int):
+def extract_json(url:str, params:str, api_key:str, secret_key:str, data_dir:str, timestamp:str, max_retry:int, delay:int):
     """Extracts JSON files from specified URL if they are in a ZIP files that has .gz files in it.
 
     Args:
@@ -19,6 +19,7 @@ def extract_json(url:str, params:str, api_key:str, secret_key:str, timestamp:str
         params (str): parameters for the timestamps to determine which data to pull from the API
         api_key (str): API access key
         secret_key (str): API Secret key
+        data_dir (str): data directory
         timestamp (str): output's filename
         max_retry (int): the maximum number of times to try calling the api
         delay (int): how long to wait between retries (seconds)
@@ -34,9 +35,6 @@ def extract_json(url:str, params:str, api_key:str, secret_key:str, timestamp:str
 
         # --- Success: got the data ---
         if status == 200:
-            # Make sure a "data" folder exists (no error if it already does)
-            data_dir = "data"
-            os.makedirs(data_dir, exist_ok=True)
             # Make a subfolder for this run, named using the timestamp, e.g. data/amplitude_<timestamp>
             extract_folder = os.path.join(data_dir, f"amplitude_{timestamp}")
             os.makedirs(extract_folder, exist_ok=True)
