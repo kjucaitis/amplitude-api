@@ -61,3 +61,5 @@ for folder in folders_to_upload:
 
             # Logging failure
             logger.error(f'An error has occured: {e}.')
+
+
