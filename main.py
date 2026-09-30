@@ -4,13 +4,22 @@ import os
 
 from modules.extract_function import extract_json
 from modules.log_initialise import setup_logging
+from modules.load_function import load_files_to_s3
 
 # Load .env file
 load_dotenv()
 
+# Defining data directory
+data_dir = 'data'
+
 # API connection variables
 api_key = os.getenv("AMP_API_KEY")
 secret_key = os.getenv("AMP_SECRET_KEY")
+
+# Bring through our keys for AWS
+AWS_ACCESS_KEY = os.getenv('AWS_ACCESS_KEY')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_BUCKET_NAME = os.getenv('AWS_BUCKET_NAME')
 
 # Calculate yesterday's date
 yesterday = datetime.now() - timedelta(days=1)
@@ -29,20 +38,12 @@ timestamp = yesterday_str
 
 # Retry parameters
 max_retry = 5
-attempt = 0
 delay = 10
 
 # Initialise logging (creates logs/<timestamp>.log)
 logger = setup_logging(log_dir="logs", timestamp=timestamp)
 logger.info("Starting Amplitude extract")
 
-extract_json(
-    url=url,
-    params=params,
-    api_key=api_key,
-    secret_key=secret_key,
-    timestamp=timestamp,
-    max_retry=max_retry,
-    attempt=attempt,
-    delay=delay,
-)
+# Running functions
+extract_json(url,params,api_key,secret_key,timestamp,max_retry,delay,)
+load_files_to_s3(data_dir,AWS_ACCESS_KEY,AWS_SECRET_ACCESS_KEY,AWS_BUCKET_NAME)

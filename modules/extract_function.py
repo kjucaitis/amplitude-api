@@ -11,7 +11,7 @@ import zipfile  # opens the ZIP that the API returns
 logger = logging.getLogger()
 
 # Defining the function
-def extract_json(url:str, params:str, api_key:str, secret_key:str, timestamp:str, max_retry:int, attempt:int, delay:int):
+def extract_json(url:str, params:str, api_key:str, secret_key:str, timestamp:str, max_retry:int, delay:int):
     """Extracts JSON files from specified URL if they are in a ZIP files that has .gz files in it.
 
     Args:
@@ -21,9 +21,10 @@ def extract_json(url:str, params:str, api_key:str, secret_key:str, timestamp:str
         secret_key (str): API Secret key
         timestamp (str): output's filename
         max_retry (int): the maximum number of times to try calling the api
-        attempt (int): number of attempts to call the api per run
         delay (int): how long to wait between retries (seconds)
     """
+    # Defining attempt no
+    attempt = 0
 
     # Keep trying until we've used up all the allowed attempts
     while attempt < max_retry:
