@@ -24,7 +24,7 @@ def load_files_to_s3(data_dir:str, AWS_ACCESS_KEY:str, AWS_SECRET_ACCESS_KEY:str
     )
 
     # Logging the data folder path
-    logger.info(f'Looking in {data_dir}.')
+    print(f'Looking in {data_dir}.')
 
 
     # Setting up variables to upload files to s3

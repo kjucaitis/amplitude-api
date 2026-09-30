@@ -67,7 +67,7 @@ def extract_json(url:str, params:str, api_key:str, secret_key:str, data_dir:str,
                             extract_folder, os.path.basename(clean_filename)
                         )
                         # Logging file directory
-                        logger.info(f'Written to {output_path}.')
+                        print(f'Written to {output_path}.')
 
                         # Write the decompressed JSON to disk ("wb" = write as bytes)
                         with open(output_path, "wb") as f:
