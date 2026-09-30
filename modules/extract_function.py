@@ -60,11 +60,14 @@ def extract_json(url:str, params:str, api_key:str, secret_key:str, data_dir:str,
                             if file_info.filename.endswith(".gz")
                             else file_info.filename
                         )
+
                         # Build the output path; basename strips any folders that were inside the ZIP,
                         # so every file lands directly in extract_folder
                         output_path = os.path.join(
                             extract_folder, os.path.basename(clean_filename)
                         )
+                        # Logging file directory
+                        logger.info(f'Written to {output_path}.')
 
                         # Write the decompressed JSON to disk ("wb" = write as bytes)
                         with open(output_path, "wb") as f:
@@ -74,6 +77,7 @@ def extract_json(url:str, params:str, api_key:str, secret_key:str, data_dir:str,
                 logger.info(
                     f"Status code {status}. Data extracted and decompressed to: {extract_folder}"
                 )
+
 
             # Catch anything that goes wrong while unzipping / decompressing / writing and log it
             except Exception as e:
