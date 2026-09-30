@@ -28,6 +28,7 @@ def load_files_to_s3(data_dir:str, AWS_ACCESS_KEY:str, AWS_SECRET_ACCESS_KEY:str
 
     # For loop to upload files
     for folder in folders_to_upload:
+        folder_path = f'{data_dir}/{folder}'
         files_to_upload = os.listdir(f'{data_dir}/{folder}')
 
         for file in files_to_upload:
@@ -50,3 +51,7 @@ def load_files_to_s3(data_dir:str, AWS_ACCESS_KEY:str, AWS_SECRET_ACCESS_KEY:str
 
                 # Logging failure
                 logger.error(f'An error has occured: {e}.')
+
+            # After all files in this folder are handled, remove the folder if it's empty
+        if not os.listdir(folder_path):
+            os.rmdir(folder_path)
